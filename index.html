@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3d3a8c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Planning famille</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+:root{--bg:#f4f4f1;--card:#fff;--ink:#1d2024;--mute:#6a7078;--line:#dcdde0;--acc:#3d3a8c;--accfg:#fff;--empty:#ebecee}
+@media(prefers-color-scheme:dark){:root{--bg:#15161a;--card:#202228;--ink:#eceef1;--mute:#98a0aa;--line:#31343c;--acc:#9a97f0;--accfg:#14123a;--empty:#2a2d35}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+header{position:sticky;top:0;z-index:5;background:var(--acc);color:var(--accfg);display:flex;align-items:center;gap:8px;padding:10px 12px}
+header h1{font-size:1.1rem;margin:0;flex:1}
+header button{background:none;border:0;color:inherit;font-size:1.5rem;min-height:44px;padding:0 8px}
+#sync{font-size:.75rem;opacity:.9}
+main{max-width:640px;margin:0 auto;padding:10px 8px 80px}
+.tabs{display:flex;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:4px 0 10px}
+.tabs button{flex:1;border:0;background:none;color:var(--ink);font:inherit;padding:10px;min-height:44px}
+.tabs button.on{background:var(--acc);color:var(--accfg);font-weight:700}
+.nav{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.nav b{flex:1;text-align:center}
+.nav button{border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;font:inherit;min-width:44px;min-height:44px}
+.grid{display:grid;gap:3px}
+.w{grid-template-columns:54px repeat(7,1fr)}
+.m{grid-template-columns:repeat(7,1fr)}
+.dh{border:0;background:none;color:var(--mute);font:inherit;font-size:.78rem;text-align:center;padding:2px 0;line-height:1.2}
+.dh.today{color:var(--acc);font-weight:800}
+.pn{display:flex;align-items:center;font-weight:700;font-size:.9rem;padding-left:2px}
+.pn.me{color:var(--acc)}
+.c{border:0;border-radius:7px;min-height:46px;background:var(--empty);font:inherit;font-size:.68rem;font-weight:700;padding:0;position:relative;color:var(--ink)}
+.c i{position:absolute;top:1px;right:4px;font-style:normal;font-size:.9rem}
+.c.ov{outline:2px dashed var(--acc);outline-offset:-2px}
+.md{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;min-height:58px;font:inherit;padding:3px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.md.today{border:2px solid var(--acc)}.md.off{opacity:.35}
+.dots{display:grid;grid-template-columns:repeat(3,9px);gap:2px}
+.dots span{width:9px;height:9px;border-radius:50%;background:var(--empty)}
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin:14px 2px;font-size:.78rem}
+.legend span{padding:3px 8px;border-radius:12px;font-weight:700}
+.hint{color:var(--mute);font-size:.82rem;margin:6px 2px}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center;z-index:20}
+#modal.on{display:flex}
+#sheet{background:var(--card);width:100%;max-width:640px;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto}
+#sheet h3{margin:0 0 10px;text-transform:capitalize}
+label{display:block;font-size:.85rem;color:var(--mute);margin:10px 0 4px}
+input,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:11px}
+.btn{background:var(--acc);color:var(--accfg);border:0;border-radius:10px;padding:12px 16px;font:inherit;font-weight:600;min-height:46px}
+.btn.sec{background:none;color:var(--acc);border:1.5px solid var(--acc)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.pl{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.pl:first-of-type{border-top:0}
+.pl b{width:60px}.chip{padding:3px 10px;border-radius:12px;font-weight:700;font-size:.85rem}
+.pl .nt{flex:1;color:var(--mute);font-size:.85rem}
+.pl button{margin-left:auto}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;display:none;z-index:30}
+</style>
+</head>
+<body>
+<header><h1>Planning famille</h1><span id="sync"></span><button id="menu" aria-label="Menu">⋮</button></header>
+<main id="app"></main>
+<div id="modal"><div id="sheet"></div></div><div id="toast"></div>
+<script>
+const VERSION="1.0.0";
+/* ---- Partage en ligne (Firebase) : coller ici la config fournie par Firebase ---- */
+const FIREBASE_CONFIG=null;
+const FAMILY="pf-b8k2x7q4m9";
+
+const PERSONS=[{id:"loan",name:"Loan"},{id:"papa",name:"Vincent"},{id:"maman",name:"Marina"},{id:"frere",name:"Bastien"},{id:"maeline",name:"Maeline"}];
+/* statut : [nom, fond, texte, abrégé] */
+const ST={ecole:["École","#2f6fd6","#fff","École"],matin:["Matin","#f2b705","#2b2100","Matin"],aprem:["Après-midi","#ef7d22","#fff","Ap-m"],
+ we:["Week-end travaillé","#c2347a","#fff","W-E"],repos:["Repos","#2e9b5e","#fff","Repos"],event:["Événement / anniversaire","#8e5bd0","#fff","Évén."],stage:["Stage","#0f8b8d","#fff","Stage"],travail:["Travail","#5f6f7d","#fff","Trav."],absent:["Absent","#8a8f98","#fff","Abs."]};
+
+/* Loan : jours d'école (cases bleues du calendrier BUT TC 3e année 2026-2027) */
+const ECOLE=[["2026-09-14","2026-09-18"],["2026-10-05","2026-10-09"],["2026-10-12","2026-10-16"],["2026-11-02","2026-11-06"],["2026-11-09","2026-11-10"],["2026-11-12","2026-11-13"],
+["2026-12-07","2026-12-11"],["2027-01-18","2027-01-22"],["2027-01-25","2027-01-29"],["2027-02-15","2027-02-19"],["2027-03-22","2027-03-26"],["2027-04-12","2027-04-16"],
+["2027-05-18","2027-05-21"],["2027-05-24","2027-05-28"],["2027-06-21","2027-06-25"],["2027-06-28","2027-07-02"],["2027-08-30","2027-08-31"]];
+/* Maman : cycle de 4 semaines. Semaine 1 = lundi 29/06/2026.
+   Jour de repos par semaine du cycle (0=lundi … 4=vendredi), avec la date à partir de laquelle il s'applique */
+const REPOS=[[["2026-06-29",0],["2027-01-01",0]],[["2026-06-29",2],["2026-10-17",4]],[["2026-06-29",1]],[["2026-06-29",2]]];
+const reposDay=(w,s)=>{let r=null;REPOS[w].forEach(([f,j])=>{if(s>=f)r=j});return r;};
+const CYCLE_DEBUT="2026-06-29", CYCLE_FIN="2027-12-31";
+
+/* Bastien : stage du lundi 23/11/2026 au vendredi 18/12/2026 */
+const STAGE=["2026-11-23","2026-12-18"];
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const mk=s=>{const[a,b,c]=s.split("-");return new Date(+a,b-1,+c,12)};
+const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const idx=d=>Math.round(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
+const monday=d=>addD(d,-((d.getDay()+6)%7));
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $=id=>document.getElementById(id);
+const JS=["dim","lun","mar","mer","jeu","ven","sam"];
+const fmtDay=d=>d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+
+const SCHOOL=new Set(); ECOLE.forEach(([a,b])=>{for(let d=mk(a);iso(d)<=b;d=addD(d,1))SCHOOL.add(iso(d));});
+const C0=idx(mk(CYCLE_DEBUT)), C1=idx(mk(CYCLE_FIN));
+function auto(p,d){
+  if(p==="loan") return SCHOOL.has(iso(d))?"ecole":null;
+  if(p==="frere"){ const wd=(d.getDay()+6)%7, s=iso(d); return wd<5&&s>=STAGE[0]&&s<=STAGE[1]?"stage":null; }
+  if(p==="maman"){
+    const i=idx(d); if(i<C0||i>C1) return null;
+    const w=Math.floor((i-C0)/7)%4, wd=(d.getDay()+6)%7;
+    if(wd>=5) return w===3?"we":null;
+    if(wd===reposDay(w,iso(d))) return "repos";
+    return w%2===0?"aprem":"matin";
+  }
+  return null;
+}
+
+/* ---- données modifiées à la main (partagées si Firebase est configuré) ---- */
+let ov={}; try{ov=JSON.parse(localStorage.getItem("pf-ov")||"{}")}catch(e){}
+let ref=null, online=false;
+const cache=()=>localStorage.setItem("pf-ov",JSON.stringify(ov));
+function setOv(k,v){ if(v) ov[k]=v; else delete ov[k]; cache(); if(ref) ref.child(k).set(v||null).catch(()=>{}); }
+function stat(p,d){ const o=ov[p+"_"+iso(d)]; return o?{s:o.s==="none"?null:o.s,n:o.n||"",ov:true}:{s:auto(p,d),n:"",ov:false}; }
+function initSync(){
+  if(!FIREBASE_CONFIG||typeof firebase==="undefined"){ setSync(); return; }
+  try{
+    firebase.initializeApp(FIREBASE_CONFIG);
+    const db=firebase.database();
+    ref=db.ref("planning/"+FAMILY+"/ov");
+    ref.on("value",s=>{ov=s.val()||{};cache();render();},()=>setSync());
+    db.ref(".info/connected").on("value",s=>{online=!!s.val();setSync();});
+  }catch(e){ref=null;}
+  setSync();
+}
+function setSync(){ $("sync").textContent=!ref?"Local":online?"● Partagé":"Hors ligne"; }
+
+/* ---- interface ---- */
+let view="week", cur=monday(new Date()), me=localStorage.getItem("pf-me")||"";
+const toast=m=>{const e=$("toast");e.textContent=m;e.style.display="block";setTimeout(()=>e.style.display="none",1800);};
+function sheet(html){ $("sheet").innerHTML=html; $("modal").classList.add("on"); }
+const close=()=>$("modal").classList.remove("on");
+$("modal").onclick=e=>{if(e.target.id==="modal")close();};
+
+function render(){
+  const t=iso(new Date());
+  let h=`<div class="tabs"><button data-v="week" class="${view==="week"?"on":""}">Semaine</button><button data-v="month" class="${view==="month"?"on":""}">Mois</button></div>`;
+  if(view==="week"){
+    const days=[...Array(7)].map((_,i)=>addD(cur,i)), a=days[0], b=days[6];
+    const lab=`${a.getDate()} ${a.toLocaleDateString("fr-FR",{month:"short"})} – ${b.getDate()} ${b.toLocaleDateString("fr-FR",{month:"short",year:"numeric"})}`;
+    h+=`<div class="nav"><button id="prev">‹</button><b>${lab}</b><button id="today">Auj.</button><button id="next">›</button></div><div class="grid w"><div></div>`+
+      days.map(d=>`<button class="dh${iso(d)===t?" today":""}" data-day="${iso(d)}">${JS[d.getDay()]}<br><b>${d.getDate()}</b></button>`).join("")+
+      PERSONS.map(p=>`<div class="pn${p.id===me?" me":""}">${p.name}</div>`+days.map(d=>{const s=stat(p.id,d),st=s.s&&ST[s.s];
+        return `<button class="c${s.ov?" ov":""}" data-p="${p.id}" data-d="${iso(d)}" style="${st?`background:${st[1]};color:${st[2]}`:""}">${st?st[3]:""}${s.n?"<i>•</i>":""}</button>`}).join("")).join("")+`</div>`;
+  } else {
+    const f=new Date(cur.getFullYear(),cur.getMonth(),1,12), lead=(f.getDay()+6)%7, n=new Date(f.getFullYear(),f.getMonth()+1,0).getDate();
+    h+=`<div class="nav"><button id="prev">‹</button><b>${f.toLocaleDateString("fr-FR",{month:"long",year:"numeric"})}</b><button id="today">Auj.</button><button id="next">›</button></div><div class="grid m">`+
+      ["L","M","M","J","V","S","D"].map(x=>`<div class="dh">${x}</div>`).join("")+"<div></div>".repeat(lead)+
+      [...Array(n)].map((_,i)=>{const d=addD(f,i);return `<button class="md${iso(d)===t?" today":""}" data-day="${iso(d)}"><b>${i+1}</b><span class="dots">${PERSONS.map(p=>{const s=stat(p.id,d).s;return `<span style="${s?`background:${ST[s][1]}`:""}"></span>`}).join("")}</span></button>`}).join("")+`</div><p class="hint">Points : ${PERSONS.map(p=>p.name).join(", ")} (dans cet ordre)</p>`;
+  }
+  h+=`<div class="legend">`+Object.values(ST).map(v=>`<span style="background:${v[1]};color:${v[2]}">${v[0]}</span>`).join("")+`</div><p class="hint">Touche une case pour modifier (échange de poste, jour férié, congé…). Un contour pointillé indique une modification manuelle.</p>`;
+  $("app").innerHTML=h; bind();
+}
+function bind(){
+  document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{view=b.dataset.v;cur=view==="week"?monday(new Date()):new Date();render();});
+  $("prev").onclick=()=>{cur=view==="week"?addD(cur,-7):new Date(cur.getFullYear(),cur.getMonth()-1,1,12);render();};
+  $("next").onclick=()=>{cur=view==="week"?addD(cur,7):new Date(cur.getFullYear(),cur.getMonth()+1,1,12);render();};
+  $("today").onclick=()=>{cur=view==="week"?monday(new Date()):new Date();render();};
+  document.querySelectorAll("[data-day]").forEach(b=>b.onclick=()=>dayView(mk(b.dataset.day)));
+  document.querySelectorAll(".c").forEach(b=>b.onclick=()=>edit(b.dataset.p,mk(b.dataset.d)));
+}
+function dayView(d){
+  sheet(`<h3>${fmtDay(d)}</h3>`+PERSONS.map(p=>{const s=stat(p.id,d),st=s.s&&ST[s.s];
+    return `<div class="pl"><b>${p.name}</b><span class="chip" style="${st?`background:${st[1]};color:${st[2]}`:"background:var(--empty)"}">${st?st[0]:"Libre"}</span><span class="nt">${esc(s.n)}</span><button class="btn sec" data-e="${p.id}">Modifier</button></div>`}).join("")+
+    `<div class="row"><button class="btn sec" id="x">Fermer</button></div>`);
+  $("x").onclick=close; document.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>edit(b.dataset.e,d));
+}
+function edit(pid,d){
+  const P=PERSONS.find(x=>x.id===pid), k=pid+"_"+iso(d), o=ov[k], a=auto(pid,d), s=stat(pid,d);
+  sheet(`<h3>${P.name} · ${fmtDay(d)}</h3><label for="es">Statut</label><select id="es"><option value="auto">Planning automatique (${a?ST[a][0]:"rien"})</option><option value="none">Libre / rien de prévu</option>`+
+    Object.entries(ST).map(([key,v])=>`<option value="${key}">${v[0]}</option>`).join("")+`</select><label for="en">Note (échange avec un collègue, horaires…)</label><input id="en" value="${esc(s.n)}">`+
+    `<div class="row"><button class="btn" id="ok">Enregistrer</button><button class="btn sec" id="no">Annuler</button></div>`);
+  $("es").value=o?o.s:"auto"; $("no").onclick=close;
+  $("ok").onclick=()=>{const v=$("es").value,n=$("en").value.trim();
+    if(v==="auto"&&!n) setOv(k,null); else setOv(k,{s:v==="auto"?(a||"none"):v,n});
+    close(); render(); toast("Enregistré");};
+}
+$("menu").onclick=()=>{
+  sheet(`<h3>Menu</h3><div class="row" style="flex-direction:column;margin-top:0"><button class="btn sec" id="mMe">Qui es-tu ? (${PERSONS.find(p=>p.id===me)?.name||"non choisi"})</button><button class="btn sec" id="mX">Fermer</button></div><p class="hint">Version ${VERSION} · ${ref?"partage en ligne actif":"mode local (pas de partage)"}</p>`);
+  $("mX").onclick=close; $("mMe").onclick=askMe;
+};
+function askMe(){
+  sheet(`<h3>Qui es-tu ?</h3><div class="row" style="flex-direction:column;margin-top:0">`+PERSONS.map(p=>`<button class="btn sec" data-me="${p.id}">${p.name}</button>`).join("")+`</div>`);
+  document.querySelectorAll("[data-me]").forEach(b=>b.onclick=()=>{me=b.dataset.me;localStorage.setItem("pf-me",me);close();render();});
+}
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>r.update()).catch(()=>{});
+initSync(); render(); if(!me) askMe();
+</script>
+</body>
+</html>
