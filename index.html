@@ -57,15 +57,23 @@ input,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);borde
 .pl b{width:60px}.chip{padding:3px 10px;border-radius:12px;font-weight:700;font-size:.85rem}
 .pl .nt{flex:1;color:var(--mute);font-size:.85rem}
 .pl button{margin-left:auto}
+#gate{position:fixed;inset:0;z-index:100;background:var(--acc);color:var(--accfg);display:none;align-items:center;justify-content:center;padding:24px}
+#gate.on{display:flex}
+#gate form{width:100%;max-width:320px;text-align:center}
+#gate h2{margin:0 0 6px;font-size:1.4rem}#gate p{margin:0 0 18px;opacity:.85}
+#gate input{text-align:center;font-size:1.6rem;letter-spacing:.4em;background:#fff;color:#111;border:0}
+#gate button{width:100%;margin-top:12px;background:#fff;color:#3d3a8c}
+#gate .err{min-height:1.4em;margin-top:10px;font-weight:700}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;display:none;z-index:30}
 </style>
 </head>
 <body>
 <header><h1>Planning famille</h1><span id="sync"></span><button id="menu" aria-label="Menu">⋮</button></header>
 <main id="app"></main>
+<div id="gate"><form id="gf"><h2>Planning famille</h2><p>Entre le code d'accès</p><input id="gp" type="password" inputmode="numeric" autocomplete="off" maxlength="8" aria-label="Code d'accès"><button class="btn" type="submit">Ouvrir</button><div class="err" id="ge"></div></form></div>
 <div id="modal"><div id="sheet"></div></div><div id="toast"></div>
 <script>
-const VERSION="1.0.0";
+const VERSION="1.1.0";
 /* ---- Partage en ligne (Firebase) : coller ici la config fournie par Firebase ---- */
 const FIREBASE_CONFIG=null;
 const FAMILY="pf-b8k2x7q4m9";
@@ -191,7 +199,18 @@ function askMe(){
   document.querySelectorAll("[data-me]").forEach(b=>b.onclick=()=>{me=b.dataset.me;localStorage.setItem("pf-me",me);close();render();});
 }
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r=>r.update()).catch(()=>{});
-initSync(); render(); if(!me) askMe();
+/* ---- code d'accès (empêche l'ouverture par un inconnu qui trouverait le lien) ---- */
+const PIN_HASH="532eae32530b3776a63d426591fdf98eb41ea87cb9c3d3984105753d5cc601a9";
+async function sha(t){try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");}catch(e){return "";}}
+const isOpen=()=>{try{return localStorage.getItem("pf-ok")===PIN_HASH}catch(e){return false}};
+function start(){ initSync(); render(); if(!me) askMe(); }
+if(isOpen()) start();
+else{
+  $("gate").classList.add("on"); setTimeout(()=>$("gp").focus(),50);
+  $("gf").onsubmit=async e=>{ e.preventDefault();
+    if(await sha("planning-famille:"+$("gp").value.trim())===PIN_HASH){ try{localStorage.setItem("pf-ok",PIN_HASH)}catch(_){} $("gate").classList.remove("on"); start(); }
+    else{ $("ge").textContent="Code incorrect"; $("gp").value=""; $("gp").focus(); } };
+}
 </script>
 </body>
 </html>
