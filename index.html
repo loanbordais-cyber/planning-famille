@@ -11,8 +11,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
-:root{--bg:#f4f4f1;--card:#fff;--ink:#1d2024;--mute:#6a7078;--line:#dcdde0;--acc:#3d3a8c;--accfg:#fff;--empty:#ebecee}
-@media(prefers-color-scheme:dark){:root{--bg:#15161a;--card:#202228;--ink:#eceef1;--mute:#98a0aa;--line:#31343c;--acc:#9a97f0;--accfg:#14123a;--empty:#2a2d35}}
+:root{--bg:#f4f4f1;--card:#fff;--ink:#1d2024;--mute:#6a7078;--line:#dcdde0;--acc:#3d3a8c;--accfg:#fff;--empty:#ebecee;--fer:#c62828;--ferbg:#fbe3e1}
+@media(prefers-color-scheme:dark){:root{--bg:#15161a;--card:#202228;--ink:#eceef1;--mute:#98a0aa;--line:#31343c;--acc:#9a97f0;--accfg:#14123a;--empty:#2a2d35;--fer:#ff8a80;--ferbg:#40201f}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 header{position:sticky;top:0;z-index:5;background:var(--acc);color:var(--accfg);display:flex;align-items:center;gap:8px;padding:10px 12px}
@@ -64,6 +64,9 @@ input,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);borde
 #gate input{text-align:center;font-size:1.6rem;letter-spacing:.4em;background:#fff;color:#111;border:0}
 #gate button{width:100%;margin-top:12px;background:#fff;color:#3d3a8c}
 #gate .err{min-height:1.4em;margin-top:10px;font-weight:700}
+.dh.fer{color:var(--fer)}.dh .fe{display:block;font-style:normal;font-size:.62rem;font-weight:700;color:var(--fer)}
+.md.fer{background:var(--ferbg);border-top:3px solid var(--fer)}
+.chip-fer{background:var(--ferbg);color:var(--fer);border:1px solid var(--fer)}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;display:none;z-index:30}
 </style>
 </head>
@@ -73,7 +76,7 @@ input,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);borde
 <div id="gate"><form id="gf"><h2>Planning famille</h2><p>Entre le code d'accès</p><input id="gp" type="password" inputmode="numeric" autocomplete="off" maxlength="8" aria-label="Code d'accès"><button class="btn" type="submit">Ouvrir</button><div class="err" id="ge"></div></form></div>
 <div id="modal"><div id="sheet"></div></div><div id="toast"></div>
 <script>
-const VERSION="1.2.0";
+const VERSION="1.3.0";
 /* ---- Partage en ligne (Firebase) : coller ici la config fournie par Firebase ---- */
 const FIREBASE_CONFIG={
   apiKey:"AIzaSyC4N0CNpgmln83CbdAh4Erx9ZD2ymbdOME",
@@ -113,6 +116,15 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const $=id=>document.getElementById(id);
 const JS=["dim","lun","mar","mer","jeu","ven","sam"];
 const fmtDay=d=>d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+
+/* ---- jours fériés (France) ---- */
+const FER={};
+function easter(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return new Date(y,mo-1,da,12);}
+for(let y=2026;y<=2030;y++){const P=easter(y),add=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+  const pad2=n=>String(n).padStart(2,"0"),k=d=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  [[new Date(y,0,1,12),"Jour de l'An"],[add(P,1),"Lundi de Pâques"],[new Date(y,4,1,12),"Fête du Travail"],[new Date(y,4,8,12),"Victoire 1945"],[add(P,39),"Ascension"],[add(P,50),"Lundi de Pentecôte"],
+   [new Date(y,6,14,12),"Fête nationale"],[new Date(y,7,15,12),"Assomption"],[new Date(y,10,1,12),"Toussaint"],[new Date(y,10,11,12),"Armistice 1918"],[new Date(y,11,25,12),"Noël"]].forEach(([d,n])=>{FER[k(d)]=n;});}
+const ferie=d=>FER[iso(d)]||"";
 
 const SCHOOL=new Set(); ECOLE.forEach(([a,b])=>{for(let d=mk(a);iso(d)<=b;d=addD(d,1))SCHOOL.add(iso(d));});
 const C0=idx(mk(CYCLE_DEBUT)), C1=idx(mk(CYCLE_FIN));
@@ -162,16 +174,16 @@ function render(){
     const days=[...Array(7)].map((_,i)=>addD(cur,i)), a=days[0], b=days[6];
     const lab=`${a.getDate()} ${a.toLocaleDateString("fr-FR",{month:"short"})} – ${b.getDate()} ${b.toLocaleDateString("fr-FR",{month:"short",year:"numeric"})}`;
     h+=`<div class="nav"><button id="prev">‹</button><b>${lab}</b><button id="today">Auj.</button><button id="next">›</button></div><div class="grid w"><div></div>`+
-      days.map(d=>`<button class="dh${iso(d)===t?" today":""}" data-day="${iso(d)}">${JS[d.getDay()]}<br><b>${d.getDate()}</b></button>`).join("")+
+      days.map(d=>`<button class="dh${iso(d)===t?" today":""}${ferie(d)?" fer":""}" data-day="${iso(d)}" ${ferie(d)?`title="${esc(ferie(d))}"`:""}>${JS[d.getDay()]}<br><b>${d.getDate()}</b>${ferie(d)?`<i class="fe">férié</i>`:""}</button>`).join("")+
       PERSONS.map(p=>`<div class="pn${p.id===me?" me":""}">${p.name}</div>`+days.map(d=>{const s=stat(p.id,d),st=s.s&&ST[s.s];
         return `<button class="c${s.ov?" ov":""}" data-p="${p.id}" data-d="${iso(d)}" style="${st?`background:${st[1]};color:${st[2]}`:""}">${st?st[3]:""}${s.n?"<i>•</i>":""}</button>`}).join("")).join("")+`</div>`;
   } else {
     const f=new Date(cur.getFullYear(),cur.getMonth(),1,12), lead=(f.getDay()+6)%7, n=new Date(f.getFullYear(),f.getMonth()+1,0).getDate();
     h+=`<div class="nav"><button id="prev">‹</button><b>${f.toLocaleDateString("fr-FR",{month:"long",year:"numeric"})}</b><button id="today">Auj.</button><button id="next">›</button></div><div class="grid m">`+
       ["L","M","M","J","V","S","D"].map(x=>`<div class="dh">${x}</div>`).join("")+"<div></div>".repeat(lead)+
-      [...Array(n)].map((_,i)=>{const d=addD(f,i);return `<button class="md${iso(d)===t?" today":""}" data-day="${iso(d)}"><b>${i+1}</b><span class="dots">${PERSONS.map(p=>{const s=stat(p.id,d).s;return `<span style="${s?`background:${ST[s][1]}`:""}"></span>`}).join("")}</span></button>`}).join("")+`</div><p class="hint">Points : ${PERSONS.map(p=>p.name).join(", ")} (dans cet ordre)</p>`;
+      [...Array(n)].map((_,i)=>{const d=addD(f,i);return `<button class="md${iso(d)===t?" today":""}${ferie(d)?" fer":""}" data-day="${iso(d)}"><b>${i+1}</b><span class="dots">${PERSONS.map(p=>{const s=stat(p.id,d).s;return `<span style="${s?`background:${ST[s][1]}`:""}"></span>`}).join("")}</span></button>`}).join("")+`</div><p class="hint">Points : ${PERSONS.map(p=>p.name).join(", ")} (dans cet ordre)</p>`;
   }
-  h+=`<div class="legend">`+Object.values(ST).map(v=>`<span style="background:${v[1]};color:${v[2]}">${v[0]}</span>`).join("")+`</div><p class="hint">Touche une case pour modifier (échange de poste, jour férié, congé…). Un contour pointillé indique une modification manuelle.</p>`;
+  h+=`<div class="legend">`+Object.values(ST).map(v=>`<span style="background:${v[1]};color:${v[2]}">${v[0]}</span>`).join("")+`<span class="chip-fer">Jour férié</span>`+`</div><p class="hint">Touche une case pour modifier (échange de poste, jour férié, congé…). Un contour pointillé indique une modification manuelle.</p>`;
   $("app").innerHTML=h; bind();
 }
 function bind(){
@@ -183,7 +195,7 @@ function bind(){
   document.querySelectorAll(".c").forEach(b=>b.onclick=()=>edit(b.dataset.p,mk(b.dataset.d)));
 }
 function dayView(d){
-  sheet(`<h3>${fmtDay(d)}</h3>`+PERSONS.map(p=>{const s=stat(p.id,d),st=s.s&&ST[s.s];
+  sheet(`<h3>${fmtDay(d)}</h3>${ferie(d)?`<p><span class="chip chip-fer">Jour férié : ${esc(ferie(d))}</span></p>`:""}`+PERSONS.map(p=>{const s=stat(p.id,d),st=s.s&&ST[s.s];
     return `<div class="pl"><b>${p.name}</b><span class="chip" style="${st?`background:${st[1]};color:${st[2]}`:"background:var(--empty)"}">${st?st[0]:"Libre"}</span><span class="nt">${esc(s.n)}</span><button class="btn sec" data-e="${p.id}">Modifier</button></div>`}).join("")+
     `<div class="row"><button class="btn sec" id="x">Fermer</button></div>`);
   $("x").onclick=close; document.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>edit(b.dataset.e,d));
