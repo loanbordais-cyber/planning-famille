@@ -11,15 +11,15 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
-:root{--bg:#f4f4f1;--card:#fff;--ink:#1d2024;--mute:#6a7078;--line:#dcdde0;--acc:#3d3a8c;--accfg:#fff;--empty:#ebecee;--fer:#c62828;--ferbg:#fbe3e1}
-@media(prefers-color-scheme:dark){:root{--bg:#15161a;--card:#202228;--ink:#eceef1;--mute:#98a0aa;--line:#31343c;--acc:#9a97f0;--accfg:#14123a;--empty:#2a2d35;--fer:#ff8a80;--ferbg:#40201f}}
+:root{--bg:#f4f4f1;--card:#fff;--ink:#1d2024;--mute:#6a7078;--line:#dcdde0;--acc:#3d3a8c;--accfg:#fff;--empty:#ebecee;--fer:#c62828;--ferbg:#fbe3e1;--bd:#a3195b;--bdbg:#fde7f3}
+@media(prefers-color-scheme:dark){:root{--bg:#15161a;--card:#202228;--ink:#eceef1;--mute:#98a0aa;--line:#31343c;--acc:#9a97f0;--accfg:#14123a;--empty:#2a2d35;--fer:#ff8a80;--ferbg:#40201f;--bd:#ff9ccc;--bdbg:#4a2036}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 header{position:sticky;top:0;z-index:5;background:var(--acc);color:var(--accfg);display:flex;align-items:center;gap:8px;padding:10px 12px}
 header h1{font-size:1.1rem;margin:0;flex:1}
 header button{background:none;border:0;color:inherit;font-size:1.5rem;min-height:44px;padding:0 8px}
 #sync{font-size:.75rem;opacity:.9}
-main{max-width:640px;margin:0 auto;padding:10px 8px 80px}
+main{max-width:680px;margin:0 auto;padding:10px 8px 80px}
 .tabs{display:flex;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:4px 0 10px}
 .tabs button{flex:1;border:0;background:none;color:var(--ink);font:inherit;padding:10px;min-height:44px}
 .tabs button.on{background:var(--acc);color:var(--accfg);font-weight:700}
@@ -27,20 +27,14 @@ main{max-width:640px;margin:0 auto;padding:10px 8px 80px}
 .nav b{flex:1;text-align:center}
 .nav button{border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;font:inherit;min-width:44px;min-height:44px}
 .grid{display:grid;gap:3px}
-.w{grid-template-columns:54px repeat(7,1fr)}
 .m{grid-template-columns:repeat(7,1fr)}
-.dh{border:0;background:none;color:var(--mute);font:inherit;font-size:.78rem;text-align:center;padding:2px 0;line-height:1.2}
-.dh.today{color:var(--acc);font-weight:800}
-.pn{display:flex;align-items:center;font-weight:700;font-size:.9rem;padding-left:2px}
-.pn.me{color:var(--acc)}
-.c{border:0;border-radius:7px;min-height:46px;background:var(--empty);font:inherit;font-size:.68rem;font-weight:700;padding:0;position:relative;color:var(--ink)}
-.c i{position:absolute;top:1px;right:4px;font-style:normal;font-size:.9rem}
 .c.ov{outline:2px dashed var(--acc);outline-offset:-2px}
-.md{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;min-height:58px;font:inherit;padding:3px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.md{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:9px;min-height:78px;font:inherit;padding:4px 3px;display:flex;flex-direction:column;align-items:center;gap:4px;overflow:hidden}
+.md b{font-size:1rem}.md .mt{font-size:.56rem;font-weight:700;line-height:1.1;max-width:100%;text-align:center;color:var(--bd);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
 .md.today{border:2px solid var(--acc)}.md.off{opacity:.35}
-.dots{display:grid;grid-template-columns:repeat(3,9px);gap:2px}
-.dots span{width:9px;height:9px;border-radius:50%;background:var(--empty)}
-.legend{display:flex;flex-wrap:wrap;gap:6px;margin:14px 2px;font-size:.78rem}
+.dots{display:grid;grid-template-columns:repeat(3,10px);gap:3px}
+.dots span{width:10px;height:10px;border-radius:50%;background:var(--empty)}
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin:14px 2px;font-size:.82rem}
 .legend span{padding:3px 8px;border-radius:12px;font-weight:700}
 .hint{color:var(--mute);font-size:.82rem;margin:6px 2px}
 #modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center;z-index:20}
@@ -64,9 +58,27 @@ input,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);borde
 #gate input{text-align:center;font-size:1.6rem;letter-spacing:.4em;background:#fff;color:#111;border:0}
 #gate button{width:100%;margin-top:12px;background:#fff;color:#3d3a8c}
 #gate .err{min-height:1.4em;margin-top:10px;font-weight:700}
-.dh.fer{color:var(--fer)}.dh .fe{display:block;font-style:normal;font-size:.62rem;font-weight:700;color:var(--fer)}
 .md.fer{background:var(--ferbg);border-top:3px solid var(--fer)}
 .chip-fer{background:var(--ferbg);color:var(--fer);border:1px solid var(--fer)}
+.wh{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;position:sticky;top:var(--hh,64px);z-index:4;background:var(--bg);padding:6px 0 4px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.pn{text-align:center;font-weight:800;font-size:.84rem;overflow:hidden;text-overflow:ellipsis}.pn.me{color:var(--acc)}
+.day{margin:0 0 12px}
+.dhead{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:5px;min-height:36px;padding:0 52px 0 2px;position:relative}
+.dhead.today{border-left:4px solid var(--acc);padding-left:6px}
+.dl{background:none;border:0;font:inherit;font-weight:800;font-size:1.05rem;color:var(--ink);padding:4px 2px;text-transform:capitalize;min-height:36px}
+.dhead.today .dl{color:var(--acc)}.dhead.fer .dl{color:var(--fer)}
+.tag{font:inherit;font-size:.8rem;font-weight:700;padding:3px 10px;border-radius:12px;border:0;max-width:100%;text-align:left}
+.tag.fer{background:var(--ferbg);color:var(--fer);border:1px solid var(--fer)}
+.tag.bd{background:var(--bdbg);color:var(--bd)}
+.tag.ev{background:#8e5bd0;color:#fff}
+.addf{position:absolute;right:0;top:0;border:1.5px dashed var(--line);background:none;color:var(--mute);border-radius:10px;min-width:44px;min-height:36px;font:inherit;font-size:1.1rem}
+.cells{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.c{border:0;border-radius:10px;min-height:60px;background:var(--empty);font:inherit;font-size:.76rem;font-weight:800;padding:4px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1.15;overflow:hidden;color:var(--ink);word-break:break-word;hyphens:auto}
+.c .n{font-weight:600;font-size:.68rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.c.evt .l{font-size:.74rem;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.c.ov{outline:2px dashed var(--acc);outline-offset:-2px}
+.dh{color:var(--mute);text-align:center;font-size:.8rem}
+.btn.del{background:none;color:var(--fer);border:1.5px solid var(--fer)}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;display:none;z-index:30}
 </style>
 </head>
@@ -76,7 +88,7 @@ input,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);borde
 <div id="gate"><form id="gf"><h2>Planning famille</h2><p>Entre le code d'accès</p><input id="gp" type="password" inputmode="numeric" autocomplete="off" maxlength="8" aria-label="Code d'accès"><button class="btn" type="submit">Ouvrir</button><div class="err" id="ge"></div></form></div>
 <div id="modal"><div id="sheet"></div></div><div id="toast"></div>
 <script>
-const VERSION="1.3.0";
+const VERSION="1.4.0";
 /* ---- Partage en ligne (Firebase) : coller ici la config fournie par Firebase ---- */
 const FIREBASE_CONFIG={
   apiKey:"AIzaSyC4N0CNpgmln83CbdAh4Erx9ZD2ymbdOME",
@@ -91,9 +103,11 @@ const FAMILY="pf-b8k2x7q4m9";
 
 const PERSONS=[{id:"loan",name:"Loan"},{id:"papa",name:"Vincent"},{id:"maman",name:"Marina"},{id:"frere",name:"Bastien"},{id:"maeline",name:"Maeline"}];
 /* statut : [nom, fond, texte, abrégé] */
-const ST={ecole:["École","#2f6fd6","#fff","École"],matin:["Matin","#f2b705","#2b2100","Matin"],aprem:["Après-midi","#ef7d22","#fff","Ap-m"],
- we:["Week-end travaillé","#c2347a","#fff","W-E"],repos:["Repos","#2e9b5e","#fff","Repos"],event:["Événement / anniversaire","#8e5bd0","#fff","Évén."],stage:["Stage","#0f8b8d","#fff","Stage"],travail:["Travail","#5f6f7d","#fff","Trav."],absent:["Absent","#8a8f98","#fff","Abs."]};
+const ST={ecole:["École","#2f6fd6","#fff","École"],matin:["Matin","#f2b705","#2b2100","Matin"],aprem:["Après-midi","#ef7d22","#fff","Après-midi"],
+ we:["Week-end travaillé","#c2347a","#fff","Week-end"],repos:["Repos","#2e9b5e","#fff","Repos"],event:["Événement","#8e5bd0","#fff","Événement"],stage:["Stage","#0f8b8d","#fff","Stage"],travail:["Travail","#5f6f7d","#fff","Travail"],absent:["Absent","#8a8f98","#fff","Absent"]};
 
+/* anniversaires (mois-jour) */
+const BDAYS=[["02-11","Loan"],["03-21","Bastien"],["07-22","Marina"],["10-24","Vincent"],["12-03","Maeline"]];
 /* Loan : jours d'école (cases bleues du calendrier BUT TC 3e année 2026-2027) */
 const ECOLE=[["2026-09-14","2026-09-18"],["2026-10-05","2026-10-09"],["2026-10-12","2026-10-16"],["2026-11-02","2026-11-06"],["2026-11-09","2026-11-10"],["2026-11-12","2026-11-13"],
 ["2026-12-07","2026-12-11"],["2027-01-18","2027-01-22"],["2027-01-25","2027-01-29"],["2027-02-15","2027-02-19"],["2027-03-22","2027-03-26"],["2027-04-12","2027-04-16"],
@@ -167,23 +181,38 @@ function sheet(html){ $("sheet").innerHTML=html; $("modal").classList.add("on");
 const close=()=>$("modal").classList.remove("on");
 $("modal").onclick=e=>{if(e.target.id==="modal")close();};
 
+const birthdays=d=>BDAYS.filter(([md])=>md===iso(d).slice(5)).map(x=>x[1]);
+const famEv=d=>{const o=ov["famille_"+iso(d)];return o&&o.n?o.n:"";};
+const dayShort=d=>d.toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"});
+function cell(p,d){
+  const s=stat(p.id,d),st=s.s&&ST[s.s],isEv=s.s==="event";
+  const label=isEv&&s.n?s.n:(st?st[3]:"");
+  const sub=!isEv&&s.n?s.n:"";
+  return `<button class="c${s.ov?" ov":""}${isEv?" evt":""}" data-p="${p.id}" data-d="${iso(d)}" aria-label="${esc(p.name)}, ${esc(st?st[0]:"libre")}${s.n?", "+esc(s.n):""}" style="${st?`background:${st[1]};color:${st[2]}`:""}">${label?`<span class="l">${esc(label)}</span>`:""}${sub?`<span class="n">${esc(sub)}</span>`:""}</button>`;
+}
 function render(){
+  try{document.documentElement.style.setProperty("--hh",document.querySelector("header").offsetHeight+"px");}catch(e){}
   const t=iso(new Date());
   let h=`<div class="tabs"><button data-v="week" class="${view==="week"?"on":""}">Semaine</button><button data-v="month" class="${view==="month"?"on":""}">Mois</button></div>`;
   if(view==="week"){
     const days=[...Array(7)].map((_,i)=>addD(cur,i)), a=days[0], b=days[6];
     const lab=`${a.getDate()} ${a.toLocaleDateString("fr-FR",{month:"short"})} – ${b.getDate()} ${b.toLocaleDateString("fr-FR",{month:"short",year:"numeric"})}`;
-    h+=`<div class="nav"><button id="prev">‹</button><b>${lab}</b><button id="today">Auj.</button><button id="next">›</button></div><div class="grid w"><div></div>`+
-      days.map(d=>`<button class="dh${iso(d)===t?" today":""}${ferie(d)?" fer":""}" data-day="${iso(d)}" ${ferie(d)?`title="${esc(ferie(d))}"`:""}>${JS[d.getDay()]}<br><b>${d.getDate()}</b>${ferie(d)?`<i class="fe">férié</i>`:""}</button>`).join("")+
-      PERSONS.map(p=>`<div class="pn${p.id===me?" me":""}">${p.name}</div>`+days.map(d=>{const s=stat(p.id,d),st=s.s&&ST[s.s];
-        return `<button class="c${s.ov?" ov":""}" data-p="${p.id}" data-d="${iso(d)}" style="${st?`background:${st[1]};color:${st[2]}`:""}">${st?st[3]:""}${s.n?"<i>•</i>":""}</button>`}).join("")).join("")+`</div>`;
+    h+=`<div class="nav"><button id="prev" aria-label="Semaine précédente">‹</button><b>${lab}</b><button id="today">Auj.</button><button id="next" aria-label="Semaine suivante">›</button></div>`+
+      `<div class="wh">${PERSONS.map(p=>`<div class="pn${p.id===me?" me":""}">${p.name}</div>`).join("")}</div>`+
+      days.map(d=>{const f=ferie(d),bd=birthdays(d),ev=famEv(d);
+        return `<section class="day"><div class="dhead${iso(d)===t?" today":""}${f?" fer":""}"><button class="dl" data-day="${iso(d)}">${esc(dayShort(d))}</button>`+
+          (f?`<span class="tag fer">${esc(f)}</span>`:"")+bd.map(n=>`<span class="tag bd">🎂 ${esc(n)}</span>`).join("")+
+          (ev?`<button class="tag ev" data-fam="${iso(d)}">${esc(ev)}</button>`:"")+
+          `<button class="addf" data-fam="${iso(d)}" aria-label="${ev?"Modifier":"Ajouter"} un événement pour toute la famille">${ev?"✎":"＋"}</button></div>`+
+          `<div class="cells">${PERSONS.map(p=>cell(p,d)).join("")}</div></section>`}).join("");
   } else {
     const f=new Date(cur.getFullYear(),cur.getMonth(),1,12), lead=(f.getDay()+6)%7, n=new Date(f.getFullYear(),f.getMonth()+1,0).getDate();
-    h+=`<div class="nav"><button id="prev">‹</button><b>${f.toLocaleDateString("fr-FR",{month:"long",year:"numeric"})}</b><button id="today">Auj.</button><button id="next">›</button></div><div class="grid m">`+
+    h+=`<div class="nav"><button id="prev" aria-label="Mois précédent">‹</button><b style="text-transform:capitalize">${f.toLocaleDateString("fr-FR",{month:"long",year:"numeric"})}</b><button id="today">Auj.</button><button id="next" aria-label="Mois suivant">›</button></div><div class="grid m">`+
       ["L","M","M","J","V","S","D"].map(x=>`<div class="dh">${x}</div>`).join("")+"<div></div>".repeat(lead)+
-      [...Array(n)].map((_,i)=>{const d=addD(f,i);return `<button class="md${iso(d)===t?" today":""}${ferie(d)?" fer":""}" data-day="${iso(d)}"><b>${i+1}</b><span class="dots">${PERSONS.map(p=>{const s=stat(p.id,d).s;return `<span style="${s?`background:${ST[s][1]}`:""}"></span>`}).join("")}</span></button>`}).join("")+`</div><p class="hint">Points : ${PERSONS.map(p=>p.name).join(", ")} (dans cet ordre)</p>`;
+      [...Array(n)].map((_,i)=>{const d=addD(f,i),bd=birthdays(d),ev=famEv(d),txt=[...bd.map(x=>"🎂 "+x),...(ev?[ev]:[])].join(" · ");
+        return `<button class="md${iso(d)===t?" today":""}${ferie(d)?" fer":""}" data-day="${iso(d)}"><b>${i+1}</b><span class="dots">${PERSONS.map(p=>{const s=stat(p.id,d).s;return `<span style="${s?`background:${ST[s][1]}`:""}"></span>`}).join("")}</span>${txt?`<span class="mt">${esc(txt)}</span>`:""}</button>`}).join("")+`</div><p class="hint">Points : ${PERSONS.map(p=>p.name).join(", ")} (dans cet ordre). Touche un jour pour voir le détail.</p>`;
   }
-  h+=`<div class="legend">`+Object.values(ST).map(v=>`<span style="background:${v[1]};color:${v[2]}">${v[0]}</span>`).join("")+`<span class="chip-fer">Jour férié</span>`+`</div><p class="hint">Touche une case pour modifier (échange de poste, jour férié, congé…). Un contour pointillé indique une modification manuelle.</p>`;
+  h+=`<div class="legend">`+Object.values(ST).map(v=>`<span style="background:${v[1]};color:${v[2]}">${v[0]}</span>`).join("")+`<span style="background:var(--bdbg);color:var(--bd)">🎂 Anniversaire</span><span class="chip-fer">Jour férié</span></div><p class="hint">Touche une case pour la modifier ou la supprimer. Le bouton ＋ d'un jour ajoute un événement pour toute la famille. Un contour pointillé indique une modification manuelle.</p>`;
   $("app").innerHTML=h; bind();
 }
 function bind(){
@@ -193,22 +222,35 @@ function bind(){
   $("today").onclick=()=>{cur=view==="week"?monday(new Date()):new Date();render();};
   document.querySelectorAll("[data-day]").forEach(b=>b.onclick=()=>dayView(mk(b.dataset.day)));
   document.querySelectorAll(".c").forEach(b=>b.onclick=()=>edit(b.dataset.p,mk(b.dataset.d)));
+  document.querySelectorAll("[data-fam]").forEach(b=>b.onclick=()=>editFam(mk(b.dataset.fam)));
 }
 function dayView(d){
-  sheet(`<h3>${fmtDay(d)}</h3>${ferie(d)?`<p><span class="chip chip-fer">Jour férié : ${esc(ferie(d))}</span></p>`:""}`+PERSONS.map(p=>{const s=stat(p.id,d),st=s.s&&ST[s.s];
+  const bd=birthdays(d), ev=famEv(d);
+  sheet(`<h3>${fmtDay(d)}</h3>${ferie(d)?`<p><span class="tag fer">Jour férié : ${esc(ferie(d))}</span></p>`:""}${bd.map(n=>`<p><span class="tag bd">🎂 Anniversaire de ${esc(n)}</span></p>`).join("")}`+
+    `<div class="pl"><b>Famille</b><span class="chip" style="${ev?"background:#8e5bd0;color:#fff":"background:var(--empty)"}">${ev?"Événement":"Rien"}</span><span class="nt">${esc(ev)}</span><button class="btn sec" data-ef="1">${ev?"Modifier":"Ajouter"}</button></div>`+
+    PERSONS.map(p=>{const s=stat(p.id,d),st=s.s&&ST[s.s];
     return `<div class="pl"><b>${p.name}</b><span class="chip" style="${st?`background:${st[1]};color:${st[2]}`:"background:var(--empty)"}">${st?st[0]:"Libre"}</span><span class="nt">${esc(s.n)}</span><button class="btn sec" data-e="${p.id}">Modifier</button></div>`}).join("")+
     `<div class="row"><button class="btn sec" id="x">Fermer</button></div>`);
-  $("x").onclick=close; document.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>edit(b.dataset.e,d));
+  $("x").onclick=close; document.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>edit(b.dataset.e,d)); document.querySelector("[data-ef]").onclick=()=>editFam(d);
 }
 function edit(pid,d){
   const P=PERSONS.find(x=>x.id===pid), k=pid+"_"+iso(d), o=ov[k], a=auto(pid,d), s=stat(pid,d);
   sheet(`<h3>${P.name} · ${fmtDay(d)}</h3><label for="es">Statut</label><select id="es"><option value="auto">Planning automatique (${a?ST[a][0]:"rien"})</option><option value="none">Libre / rien de prévu</option>`+
-    Object.entries(ST).map(([key,v])=>`<option value="${key}">${v[0]}</option>`).join("")+`</select><label for="en">Note (échange avec un collègue, horaires…)</label><input id="en" value="${esc(s.n)}">`+
-    `<div class="row"><button class="btn" id="ok">Enregistrer</button><button class="btn sec" id="no">Annuler</button></div>`);
+    Object.entries(ST).map(([key,v])=>`<option value="${key}">${v[0]}</option>`).join("")+`</select><label for="en">Note, affichée dans la case (échange de poste, horaires, nom de l'événement…)</label><input id="en" value="${esc(s.n)}">`+
+    `<div class="row"><button class="btn" id="ok">Enregistrer</button><button class="btn sec" id="no">Annuler</button>${o?'<button class="btn del" id="rm">Supprimer</button>':""}</div>`);
   $("es").value=o?o.s:"auto"; $("no").onclick=close;
+  if(o) $("rm").onclick=()=>{setOv(k,null);close();render();toast("Supprimé");};
   $("ok").onclick=()=>{const v=$("es").value,n=$("en").value.trim();
     if(v==="auto"&&!n) setOv(k,null); else setOv(k,{s:v==="auto"?(a||"none"):v,n});
     close(); render(); toast("Enregistré");};
+}
+function editFam(d){
+  const k="famille_"+iso(d), o=ov[k];
+  sheet(`<h3>Événement famille · ${fmtDay(d)}</h3><label for="en">Événement (ex. : repas chez Steph et Cat)</label><input id="en" value="${esc(o?o.n:"")}" maxlength="80">`+
+    `<div class="row"><button class="btn" id="ok">Enregistrer</button><button class="btn sec" id="no">Annuler</button>${o?'<button class="btn del" id="rm">Supprimer</button>':""}</div>`);
+  $("no").onclick=close; setTimeout(()=>$("en").focus(),50);
+  if(o) $("rm").onclick=()=>{setOv(k,null);close();render();toast("Supprimé");};
+  $("ok").onclick=()=>{const n=$("en").value.trim(); setOv(k,n?{s:"event",n}:null); close(); render(); toast(n?"Enregistré":"Supprimé");};
 }
 $("menu").onclick=()=>{
   sheet(`<h3>Menu</h3><div class="row" style="flex-direction:column;margin-top:0"><button class="btn sec" id="mMe">Qui es-tu ? (${PERSONS.find(p=>p.id===me)?.name||"non choisi"})</button><button class="btn sec" id="mX">Fermer</button></div><p class="hint">Version ${VERSION} · ${ref?"partage en ligne actif":"mode local (pas de partage)"}</p>`);
