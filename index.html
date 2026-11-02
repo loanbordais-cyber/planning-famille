@@ -73,9 +73,17 @@ input,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);borde
 <div id="gate"><form id="gf"><h2>Planning famille</h2><p>Entre le code d'accès</p><input id="gp" type="password" inputmode="numeric" autocomplete="off" maxlength="8" aria-label="Code d'accès"><button class="btn" type="submit">Ouvrir</button><div class="err" id="ge"></div></form></div>
 <div id="modal"><div id="sheet"></div></div><div id="toast"></div>
 <script>
-const VERSION="1.1.0";
+const VERSION="1.2.0";
 /* ---- Partage en ligne (Firebase) : coller ici la config fournie par Firebase ---- */
-const FIREBASE_CONFIG=null;
+const FIREBASE_CONFIG={
+  apiKey:"AIzaSyC4N0CNpgmln83CbdAh4Erx9ZD2ymbdOME",
+  authDomain:"planning-famille-c6600.firebaseapp.com",
+  databaseURL:"https://planning-famille-c6600-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"planning-famille-c6600",
+  storageBucket:"planning-famille-c6600.firebasestorage.app",
+  messagingSenderId:"791822360984",
+  appId:"1:791822360984:web:09b28324be21b60ec5cbed"
+};
 const FAMILY="pf-b8k2x7q4m9";
 
 const PERSONS=[{id:"loan",name:"Loan"},{id:"papa",name:"Vincent"},{id:"maman",name:"Marina"},{id:"frere",name:"Bastien"},{id:"maeline",name:"Maeline"}];
@@ -123,9 +131,9 @@ function auto(p,d){
 
 /* ---- données modifiées à la main (partagées si Firebase est configuré) ---- */
 let ov={}; try{ov=JSON.parse(localStorage.getItem("pf-ov")||"{}")}catch(e){}
-let ref=null, online=false;
+let ref=null, online=false, denied=false;
 const cache=()=>localStorage.setItem("pf-ov",JSON.stringify(ov));
-function setOv(k,v){ if(v) ov[k]=v; else delete ov[k]; cache(); if(ref) ref.child(k).set(v||null).catch(()=>{}); }
+function setOv(k,v){ if(v) ov[k]=v; else delete ov[k]; cache(); if(ref) ref.child(k).set(v||null).then(()=>{denied=false;setSync();}).catch(()=>{denied=true;setSync();}); }
 function stat(p,d){ const o=ov[p+"_"+iso(d)]; return o?{s:o.s==="none"?null:o.s,n:o.n||"",ov:true}:{s:auto(p,d),n:"",ov:false}; }
 function initSync(){
   if(!FIREBASE_CONFIG||typeof firebase==="undefined"){ setSync(); return; }
@@ -133,12 +141,12 @@ function initSync(){
     firebase.initializeApp(FIREBASE_CONFIG);
     const db=firebase.database();
     ref=db.ref("planning/"+FAMILY+"/ov");
-    ref.on("value",s=>{ov=s.val()||{};cache();render();},()=>setSync());
+    ref.on("value",s=>{denied=false;ov=s.val()||{};cache();render();},()=>{denied=true;setSync();});
     db.ref(".info/connected").on("value",s=>{online=!!s.val();setSync();});
   }catch(e){ref=null;}
   setSync();
 }
-function setSync(){ $("sync").textContent=!ref?"Local":online?"● Partagé":"Hors ligne"; }
+function setSync(){ $("sync").textContent=!ref?"Local":denied?"Accès refusé":online?"● Partagé":"Hors ligne"; }
 
 /* ---- interface ---- */
 let view="week", cur=monday(new Date()), me=localStorage.getItem("pf-me")||"";
